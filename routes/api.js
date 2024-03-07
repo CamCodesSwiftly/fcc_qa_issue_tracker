@@ -7,15 +7,15 @@ module.exports = function (app) {
 			projectTitle: "testProject",
 			issues: [
 				{
+					assigned_to: "Kamran",
+					status_text: "TBD",
+					open: true,
 					_id: "5871dda29faedc3491ff93bb",
 					issue_title: "Test",
 					issue_text: "The initial test issue.",
+					created_by: "Admin",
 					created_on: "2017-01-08T06:35:14.240Z",
 					updated_on: "2017-01-08T06:35:14.240Z",
-					created_by: "Admin",
-					assigned_to: "Kamran",
-					open: true,
-					status_text: "TBD",
 				},
 			],
 		},
@@ -36,6 +36,17 @@ module.exports = function (app) {
 		.post(function (req, res) {
 			let project = req.params.project;
 
+			// see if any required field is missing
+			if (
+				!req.body.issue_title ||
+				!req.body.issue_text ||
+				!req.body.created_by
+			) {
+				return res.json({
+					error: "required field(s) missing",
+				});
+			}
+
 			// see if project exists, if not, create new storage
 			// TODO: SEE IF YOU CAN MOVE THIS RIGHT AFTER app.route. This should work for all routes then i guess.
 			let projectData = findOrCreateData(project);
@@ -47,7 +58,7 @@ module.exports = function (app) {
 				assigned_to: req.body.assigned_to,
 				status_text: req.body.status_text,
 				open: true,
-				_id: uuidv4().replace(/-/g, ""),
+				_id: uuidv4().replace(/-/g, "").substring(0, 24),
 				issue_title: req.body.issue_title,
 				issue_text: req.body.issue_text,
 				created_by: req.body.created_by,
