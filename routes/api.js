@@ -34,7 +34,6 @@ module.exports = function (app) {
 			}
 
 			// see if project exists, if not, create new storage
-			// TODO: SEE IF YOU CAN MOVE THIS RIGHT AFTER app.route. This should work for all routes then i guess.
 			let projectData = findOrCreateData(project, filterObject);
 
 			res.json(projectData);
@@ -55,10 +54,8 @@ module.exports = function (app) {
 			}
 
 			// see if project exists, if not, create new storage
-			// TODO: SEE IF YOU CAN MOVE THIS RIGHT AFTER app.route. This should work for all routes then i guess.
 			let projectData = findOrCreateData(project);
 
-			// TODO: CREATE ISSUE AND SAVE IT
 			const currentDate = new Date();
 			const currentDateIsoFormat = currentDate.toISOString();
 			let issue = {
@@ -77,11 +74,38 @@ module.exports = function (app) {
 		})
 
 		.put(function (req, res) {
+			//TODO: let putObject = req.body --- and replace all req.body occurences in this function
 			let project = req.params.project;
 			let projectData = findOrCreateData(project);
 			// is an id provided?
 			if (!req.body._id) {
 				return res.json({ error: "missing _id" });
+			}
+
+			// are update fields provided?
+			if (req.body._id && Object.keys(req.body).length === 1) {
+				return res.json({
+					error: "no update field(s) sent",
+					_id: req.body._id,
+				});
+			}
+
+			// try to update, if it doesnt work return this other error
+			try {
+				// first of all find the object with the id
+				let foundObject = projectData.find(
+					(object) => object._id === req.body._id
+				);
+				mergeObjects(foundObject, req.body);
+				return res.json({
+					result: "successfully updated",
+					_id: req.body._id,
+				});
+			} catch (error) {
+				return res.json({
+					error: "could not update",
+					_id: "_id",
+				});
 			}
 		})
 
@@ -120,5 +144,15 @@ module.exports = function (app) {
 			container.push(projectData);
 		}
 		return projectData.issues;
+	}
+
+	function mergeObjects(fullObject, subsetObject) {
+		for (const key in subsetObject) {
+			if (subsetObject.hasOwnProperty(key)) {
+				fullObject[key] = subsetObject[key];
+			}
+		}
+		const currentDate = new Date();
+		fullObject.created_on = currentDate.toISOString();
 	}
 };

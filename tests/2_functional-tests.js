@@ -52,7 +52,7 @@ suite("Functional Tests", function () {
 			});
 	});
 	//#3
-	test("#simulate a put request", () => {
+	test("#simulate put request without id", () => {
 		chai.request(server)
 			.put("/api/issues/testProject")
 			.send({
@@ -65,6 +65,52 @@ suite("Functional Tests", function () {
 					res.body.error,
 					"missing _id",
 					"error message that should have been displayed, did not happen"
+				);
+			});
+	});
+	//#4
+	test("#simulate put request with id but without update fields", () => {
+		chai.request(server)
+			.put("/api/issues/testProject")
+			.send({
+				_id: "621c7832b9e50859a97f1da8",
+			}) // Provide the desired query parameters
+			.end(function (err, res) {
+				assert.equal(err, null); // No error should occur
+				assert.equal(res.status, 200);
+				assert.equal(
+					res.body.error,
+					"no update field(s) sent",
+					"error message that should have been displayed, did not happen"
+				);
+				assert.equal(
+					res.body._id,
+					"621c7832b9e50859a97f1da8",
+					"returning the id did not work"
+				);
+			});
+	});
+	//#5
+	test("#simulate a valid put request", () => {
+		chai.request(server)
+			.put("/api/issues/testProject")
+			.send({
+				_id: "621c7832b9e50859a97f1da8",
+				open: false,
+			}) // Provide the desired query parameters
+			.end(function (err, res) {
+				assert.equal(err, null); // No error should occur
+				assert.equal(res.status, 200);
+				// now assertions can be made
+				assert.equal(
+					res.body._id,
+					"621c7832b9e50859a97f1da8",
+					"incorrect id was returned"
+				);
+				assert.equal(
+					res.body.result,
+					"successfully updated",
+					"incorrect result was returned"
 				);
 			});
 	});
