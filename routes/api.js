@@ -1,8 +1,8 @@
 "use strict";
-const { v4: uuidv4 } = require("uuid");
 const { ObjectId } = require("mongodb");
 
 module.exports = function (app) {
+	let testIssueID = "621c7832b9e50859a97f1da8";
 	let container = [
 		{
 			projectTitle: "testProject",
@@ -11,7 +11,7 @@ module.exports = function (app) {
 					assigned_to: "Kamran",
 					status_text: "TBD",
 					open: true,
-					_id: new ObjectId(),
+					_id: testIssueID,
 					issue_title: "Test",
 					issue_text: "The initial test issue.",
 					created_by: "Admin",
@@ -65,7 +65,6 @@ module.exports = function (app) {
 				assigned_to: req.body.assigned_to,
 				status_text: req.body.status_text,
 				open: true,
-				// _id: uuidv4().replace(/-/g, "").substring(0, 24),
 				_id: new ObjectId(),
 				issue_title: req.body.issue_title,
 				issue_text: req.body.issue_text,
@@ -79,6 +78,11 @@ module.exports = function (app) {
 
 		.put(function (req, res) {
 			let project = req.params.project;
+			let projectData = findOrCreateData(project);
+			// is an id provided?
+			if (!req.body._id) {
+				return res.json({ error: "missing _id" });
+			}
 		})
 
 		.delete(function (req, res) {

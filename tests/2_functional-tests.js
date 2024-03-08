@@ -11,7 +11,7 @@ suite("Functional Tests", function () {
 		chai.request(server)
 			.post("/api/issues/testProject")
 			.send({
-				created_by: "Kamran",
+				created_by: "Mocha/Chai",
 			}) // Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
@@ -49,6 +49,23 @@ suite("Functional Tests", function () {
 				assert.property(res.body, "updated_on", "updated_on missing");
 
 				assert.isBoolean(res.body.open);
+			});
+	});
+	//#3
+	test("#simulate a put request", () => {
+		chai.request(server)
+			.put("/api/issues/testProject")
+			.send({
+				issue_title: "Mocha Chai: Put test without id",
+			}) // Provide the desired query parameters
+			.end(function (err, res) {
+				assert.equal(err, null); // No error should occur
+				assert.equal(res.status, 200);
+				assert.equal(
+					res.body.error,
+					"missing _id",
+					"error message that should have been displayed, did not happen"
+				);
 			});
 	});
 });
