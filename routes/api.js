@@ -112,8 +112,8 @@ module.exports = function (app) {
 			const currentDateIsoFormat = currentDate.toISOString();
 			const newId = new ObjectId();
 			let issue = {
-				assigned_to: req.body.assigned_to,
-				status_text: req.body.status_text,
+				assigned_to: req.body.assigned_to ? req.body.assigned_to : "",
+				status_text: req.body.status_text ? req.body.status_text : "",
 				open: true,
 				_id: newId,
 				issue_title: req.body.issue_title,
@@ -123,6 +123,8 @@ module.exports = function (app) {
 				updated_on: currentDateIsoFormat,
 			};
 			projectData.push(issue);
+			console.log("zeisch mal das issue her diggi");
+			console.log(issue);
 			res.json(issue);
 		})
 
