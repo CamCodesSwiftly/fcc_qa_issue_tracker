@@ -40,10 +40,10 @@ module.exports = function (app) {
 				},
 				{
 					assigned_to: "Cam",
-					status_text: "TBD",
+					status_text: "TBD2",
 					open: true,
 					_id: apitest2IssueID,
-					issue_title: "2nd Apitest proejct",
+					issue_title: "Mocha",
 					issue_text: "2nd Apitest issue.",
 					created_by: "Admin",
 					created_on: "2017-01-08T06:35:14.240Z",
@@ -51,7 +51,7 @@ module.exports = function (app) {
 				},
 				{
 					assigned_to: "Cam",
-					status_text: "TBD",
+					status_text: "TBD2",
 					open: true,
 					_id: apitest3IssueID,
 					issue_title: "2nd Apitest proejct",
@@ -63,7 +63,7 @@ module.exports = function (app) {
 				{
 					assigned_to: "Cam",
 					status_text: "TBD",
-					open: true,
+					open: false,
 					_id: apitest4IssueID,
 					issue_title: "2nd Apitest proejct",
 					issue_text: "2nd Apitest issue.",
@@ -84,6 +84,15 @@ module.exports = function (app) {
 			let filterObject;
 			if (Object.keys(req.query).length > 0) {
 				filterObject = req.query;
+			}
+
+			if (filterObject && filterObject.open !== undefined) {
+				filterObject.open =
+					filterObject.open === "true"
+						? true
+						: filterObject.open === "false"
+						? false
+						: undefined;
 			}
 
 			// see if project exists, if not, create new storage
@@ -123,8 +132,6 @@ module.exports = function (app) {
 				updated_on: currentDateIsoFormat,
 			};
 			projectData.push(issue);
-			console.log("zeisch mal das issue her diggi");
-			console.log(issue);
 			res.json(issue);
 		})
 
@@ -148,10 +155,11 @@ module.exports = function (app) {
 			// try to update, if it doesnt work return this other error
 			try {
 				// first of all find the object with the id
-				let foundObject = projectData.find(
+				let foundIssue = projectData.find(
 					(object) => object._id === req.body._id
 				);
-				mergeObjects(foundObject, req.body);
+
+				mergeObjects(foundIssue, req.body);
 				return res.json({
 					result: "successfully updated",
 					_id: req.body._id,
