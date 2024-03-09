@@ -114,4 +114,20 @@ suite("Functional Tests", function () {
 				);
 			});
 	});
+	//#6
+	test("#simulate delete request without id", () => {
+		chai.request(server)
+			.delete("/api/issues/apitest")
+			.send("") // Provide the desired query parameters
+			.end(function (err, res) {
+				assert.equal(err, null); // No error should occur
+				assert.equal(res.status, 200);
+				// now assertions can be made
+				assert.equal(
+					res.body.error,
+					"missing _id",
+					"error message that should have been displayed, did not happen"
+				);
+			});
+	});
 });
