@@ -102,12 +102,12 @@ module.exports = function (app) {
 
 		.post(function (req, res) {
 			let project = req.params.project;
-
+			let newIssue = req.body;
 			// see if any required field is missing
 			if (
-				!req.body.issue_title ||
-				!req.body.issue_text ||
-				!req.body.created_by
+				!newIssue.issue_title ||
+				!newIssue.issue_text ||
+				!newIssue.created_by
 			) {
 				return res.json({
 					error: "required field(s) missing",
@@ -121,13 +121,13 @@ module.exports = function (app) {
 			const currentDateIsoFormat = currentDate.toISOString();
 			const newId = new ObjectId();
 			let issue = {
-				assigned_to: req.body.assigned_to ? req.body.assigned_to : "",
-				status_text: req.body.status_text ? req.body.status_text : "",
+				assigned_to: newIssue.assigned_to ? newIssue.assigned_to : "",
+				status_text: newIssue.status_text ? newIssue.status_text : "",
 				open: true,
 				_id: newId,
-				issue_title: req.body.issue_title,
-				issue_text: req.body.issue_text,
-				created_by: req.body.created_by,
+				issue_title: newIssue.issue_title,
+				issue_text: newIssue.issue_text,
+				created_by: newIssue.created_by,
 				created_on: currentDateIsoFormat,
 				updated_on: currentDateIsoFormat,
 			};
@@ -136,17 +136,28 @@ module.exports = function (app) {
 		})
 
 		.put(function (req, res) {
-			//TODO: let putObject = req.body --- and replace all req.body occurences in this function
 			let project = req.params.project;
+			let putObject = req.body;
 			let projectData = findOrCreateData(project);
-			// is an id provided?
-			if (!req.body._id) {
-				return res.json({ error: "missing _id" });
+			// FIRST: is an id provided?
+			if (!putObject._id) {
+				return res.status(500).json({ error: "missing _id" });
+			}
+			// SECOND: wrong id?
+			let foundIssue = projectData.find(
+				(object) => object._id === putObject._id
+			);
+			if (typeof foundIssue === "undefined" || !foundIssue) {
+				return res.status(500).json({
+					error: "could not update",
+					_id: req.body._id,
+				});
 			}
 
-			// are update fields provided?
-			if (req.body._id && Object.keys(req.body).length === 1) {
-				return res.json({
+			// THIRD: update fields present?
+			console.log(Object.keys(putObject).length);
+			if (putObject._id && Object.keys(putObject).length === 1) {
+				return res.status(500).json({
 					error: "no update field(s) sent",
 					_id: req.body._id,
 				});
@@ -154,30 +165,28 @@ module.exports = function (app) {
 
 			// try to update, if it doesnt work return this other error
 			try {
-				// first of all find the object with the id
-				let foundIssue = projectData.find(
-					(object) => object._id === req.body._id
-				);
+				// update
+				mergeObjects(foundIssue, putObject);
 
-				mergeObjects(foundIssue, req.body);
 				return res.json({
 					result: "successfully updated",
 					_id: req.body._id,
 				});
 			} catch (error) {
-				return res.json({
+				console.log("what the fuck is going on here?");
+				return res.status(500).json({
 					error: "could not update",
-					_id: req.body._id,
+					_id: req.body_id,
 				});
 			}
 		})
 
 		.delete(function (req, res) {
 			let project = req.params.project;
-
+			let idToDelete = req.body._id;
 			// is an id provided?
-			if (!req.body._id) {
-				return res.json({ error: "missing _id" });
+			if (!idToDelete) {
+				return res.status(500).json({ error: "missing _id" });
 			}
 
 			try {
@@ -187,8 +196,17 @@ module.exports = function (app) {
 				let foundIssueIndex = -1;
 				let foundIssue = projectData.find((issue) => {
 					foundIssueIndex++;
-					return issue._id === req.body._id;
+					return issue._id === idToDelete;
 				});
+
+				//if the id was incorrect and foundIssue is undefined consequently, quit with an error
+				if (typeof foundIssue === undefined || !foundIssue) {
+					return res.status(500).json({
+						error: "could not delete",
+						_id: idToDelete,
+					});
+				}
+
 				// delete
 				projectData.splice(foundIssueIndex, 1);
 
@@ -197,9 +215,9 @@ module.exports = function (app) {
 					_id: foundIssue._id,
 				});
 			} catch (error) {
-				return res.json({
+				return res.status(500).json({
 					error: "could not delete",
-					_id: req.body._id,
+					_id: idToDelete,
 				});
 			}
 		});
@@ -237,13 +255,22 @@ module.exports = function (app) {
 		return projectData.issues;
 	}
 
+	// function mergeObjects(fullObject, subsetObject) {
+	// 	for (const key in subsetObject) {
+	// 		if (subsetObject.hasOwnProperty(key)) {
+	// 			fullObject[key] = subsetObject[key];
+	// 		}
+	// 	}
+	// 	const currentDate = new Date();
+	// 	fullObject.updated_on = currentDate.toISOString();
+	// }
 	function mergeObjects(fullObject, subsetObject) {
 		for (const key in subsetObject) {
-			if (subsetObject.hasOwnProperty(key)) {
+			if (subsetObject.hasOwnProperty(key) && subsetObject[key] !== "") {
 				fullObject[key] = subsetObject[key];
 			}
 		}
 		const currentDate = new Date();
-		fullObject.created_on = currentDate.toISOString();
+		fullObject.updated_on = currentDate.toISOString();
 	}
 };

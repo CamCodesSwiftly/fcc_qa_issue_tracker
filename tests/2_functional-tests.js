@@ -314,8 +314,7 @@ suite("Functional Tests", function () {
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 200);
+				assert.equal(res.status, 500);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -333,8 +332,7 @@ suite("Functional Tests", function () {
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 200);
+				assert.equal(res.status, 500);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -355,8 +353,9 @@ suite("Functional Tests", function () {
 			// Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 200);
+				assert.equal(res.status, 500);
 				// see if the correct error is returned
+				console.log(res.body);
 				assert.equal(
 					res.body.error,
 					"could not update",
@@ -398,7 +397,7 @@ suite("Functional Tests", function () {
 			// Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 200);
+				assert.equal(res.status, 500);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -419,14 +418,32 @@ suite("Functional Tests", function () {
 			.send("")
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 200);
+				assert.equal(res.status, 500);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
 					"missing _id",
 					"error message: missing _id should have been sent"
 				);
+				console.log(res.body);
+			});
+	});
+	//#15
+	test("#CAMS PUT TESTING ", () => {
+		chai.request(server)
+			.put("/api/issues/apitest")
+			.send({ _id: "wrongfuckingidyoumotherfucker" })
+			// Provide the desired query parameters
+			.end(function (err, res) {
+				assert.equal(err, null); // No error should occur
+				assert.equal(res.status, 500);
+				// see if the correct error is returned
+				assert.equal(
+					res.body.error,
+					"could not update",
+					"error message: could not update should have been sent"
+				);
+				console.log(res.body);
 			});
 	});
 });
