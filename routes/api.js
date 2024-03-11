@@ -141,40 +141,41 @@ module.exports = function (app) {
 			let projectData = findOrCreateData(project);
 			// FIRST: is an id provided?
 			if (!putObject._id) {
-				return res.status(500).json({ error: "missing _id" });
+				console.log("missing _id");
+				return res.json({ error: "missing _id" });
 			}
-			// SECOND: wrong id?
-			let foundIssue = projectData.find(
-				(object) => object._id === putObject._id
-			);
-			if (typeof foundIssue === "undefined" || !foundIssue) {
-				return res.status(500).json({
-					error: "could not update",
-					_id: req.body._id,
-				});
-			}
-
-			// THIRD: update fields present?
-			console.log(Object.keys(putObject).length);
+			// update fields present?
 			if (putObject._id && Object.keys(putObject).length === 1) {
-				return res.status(500).json({
+				console.log("no update field(s) sent");
+				return res.json({
 					error: "no update field(s) sent",
 					_id: req.body._id,
 				});
 			}
-
+			// FIND THE ISSUE
+			let foundIssue = projectData.find(
+				(object) => object._id === putObject._id
+			);
+			// wrong id?
+			if (typeof foundIssue === "undefined" || !foundIssue) {
+				console.log("could not update - because of invalid id");
+				return res.json({
+					error: "could not update",
+					_id: req.body._id,
+				});
+			}
 			// try to update, if it doesnt work return this other error
 			try {
 				// update
 				mergeObjects(foundIssue, putObject);
-
+				console.log("successfully updated");
 				return res.json({
 					result: "successfully updated",
-					_id: req.body._id,
+					_id: foundIssue._id.toString(),
 				});
 			} catch (error) {
-				console.log("what the fuck is going on here?");
-				return res.status(500).json({
+				console.log("could not update - some other error");
+				return res.json({
 					error: "could not update",
 					_id: req.body_id,
 				});
@@ -183,41 +184,41 @@ module.exports = function (app) {
 
 		.delete(function (req, res) {
 			let project = req.params.project;
-			let idToDelete = req.body._id;
 			// is an id provided?
-			if (!idToDelete) {
-				return res.status(500).json({ error: "missing _id" });
+			if (!req.body._id) {
+				console.log("missing _id");
+				return res.json({ error: "missing _id" });
+			}
+			// get project data
+			let projectData = findOrCreateData(project);
+			// get the issue
+			let foundIssueIndex = -1;
+			let foundIssue = projectData.find((issue) => {
+				foundIssueIndex++;
+				return issue._id === req.body._id;
+			});
+			//if the id was incorrect and foundIssue is undefined consequently, quit with an error
+			if (typeof foundIssue === undefined || !foundIssue) {
+				console.log("could not delete (because of invalid id)");
+				return res.json({
+					error: "could not delete",
+					_id: req.body._id,
+				});
 			}
 
 			try {
-				// get project data
-				let projectData = findOrCreateData(project);
-				// get the issue
-				let foundIssueIndex = -1;
-				let foundIssue = projectData.find((issue) => {
-					foundIssueIndex++;
-					return issue._id === idToDelete;
-				});
-
-				//if the id was incorrect and foundIssue is undefined consequently, quit with an error
-				if (typeof foundIssue === undefined || !foundIssue) {
-					return res.status(500).json({
-						error: "could not delete",
-						_id: idToDelete,
-					});
-				}
-
 				// delete
 				projectData.splice(foundIssueIndex, 1);
-
+				console.log("successfully deleted");
 				res.json({
 					result: "successfully deleted",
-					_id: foundIssue._id,
+					_id: new ObjectId(req.body._id),
 				});
 			} catch (error) {
-				return res.status(500).json({
+				console.log("could not delete (something else went wrong)");
+				return res.json({
 					error: "could not delete",
-					_id: idToDelete,
+					_id: req.body._id,
 				});
 			}
 		});
@@ -255,22 +256,28 @@ module.exports = function (app) {
 		return projectData.issues;
 	}
 
-	// function mergeObjects(fullObject, subsetObject) {
-	// 	for (const key in subsetObject) {
-	// 		if (subsetObject.hasOwnProperty(key)) {
-	// 			fullObject[key] = subsetObject[key];
-	// 		}
-	// 	}
-	// 	const currentDate = new Date();
-	// 	fullObject.updated_on = currentDate.toISOString();
-	// }
 	function mergeObjects(fullObject, subsetObject) {
+		console.log(fullObject);
+		console.log(subsetObject);
 		for (const key in subsetObject) {
 			if (subsetObject.hasOwnProperty(key) && subsetObject[key] !== "") {
 				fullObject[key] = subsetObject[key];
 			}
 		}
+
+		// make sure that the "open" property holds a boolean value and not a string after updating
+		if (subsetObject && subsetObject.open !== undefined) {
+			fullObject.open =
+				subsetObject.open === "true"
+					? true
+					: subsetObject.open === "false"
+					? false
+					: undefined;
+		}
+
 		const currentDate = new Date();
 		fullObject.updated_on = currentDate.toISOString();
+		console.log(fullObject);
+		console.log("UPDATE 13");
 	}
 };

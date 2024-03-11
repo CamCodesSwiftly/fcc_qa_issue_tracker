@@ -235,10 +235,11 @@ suite("Functional Tests", function () {
 			.put("/api/issues/apitest")
 			.send({
 				_id: "221c7832b9e50859a97f1da8",
-				status_text: "PUT changed by Mocha/Chai",
+				open: "true",
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
+				console.log(res.body);
 				assert.equal(err, null); // No error should occur
 				assert.equal(res.status, 200);
 				// check for existence of both fields
@@ -270,13 +271,15 @@ suite("Functional Tests", function () {
 		chai.request(server)
 			.put("/api/issues/apitest")
 			.send({
-				_id: "221c7832b9e50859a97f1da8",
-				status_text: "PUT changed 3 fields by Mocha/Chai",
+				_id: "521c7832b9e50859a97f1da8",
+				status_text: "PUT changed 4 fields by Mocha/Chai",
 				assigned_to: "Kamran",
-				issue_text: "successfully changed 3 fields",
+				issue_text: "successfully changed 4 fields",
+				open: "false",
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
+				console.log(res.body);
 				assert.equal(err, null); // No error should occur
 				assert.equal(res.status, 200);
 				// check for existence of both fields
@@ -298,7 +301,7 @@ suite("Functional Tests", function () {
 				);
 				assert.equal(
 					res.body._id,
-					"221c7832b9e50859a97f1da8",
+					"521c7832b9e50859a97f1da8",
 					"should have returned the correct id"
 				);
 			});
@@ -314,7 +317,7 @@ suite("Functional Tests", function () {
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -332,7 +335,7 @@ suite("Functional Tests", function () {
 			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -341,8 +344,8 @@ suite("Functional Tests", function () {
 				);
 			});
 	});
-	//#11
-	test("#PUT update with invalid id", () => {
+	//#11a
+	test("#PUT update with invalid id and update fields", () => {
 		chai.request(server)
 			.put("/api/issues/apitest")
 			.send({
@@ -353,9 +356,8 @@ suite("Functional Tests", function () {
 			// Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
-				console.log(res.body);
 				assert.equal(
 					res.body.error,
 					"could not update",
@@ -397,7 +399,7 @@ suite("Functional Tests", function () {
 			// Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
@@ -418,32 +420,33 @@ suite("Functional Tests", function () {
 			.send("")
 			// Provide the desired query parameters
 			.end(function (err, res) {
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
 					"missing _id",
 					"error message: missing _id should have been sent"
 				);
-				console.log(res.body);
 			});
 	});
-	//#15
-	test("#CAMS PUT TESTING ", () => {
+
+	//#11b
+	test("#PUT update with invalid id and no update fields", () => {
 		chai.request(server)
 			.put("/api/issues/apitest")
-			.send({ _id: "wrongfuckingidyoumotherfucker" })
+			.send({
+				_id: "123shgaq235rawdsg",
+			})
 			// Provide the desired query parameters
 			.end(function (err, res) {
 				assert.equal(err, null); // No error should occur
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 200);
 				// see if the correct error is returned
 				assert.equal(
 					res.body.error,
-					"could not update",
-					"error message: could not update should have been sent"
+					"no update field(s) sent",
+					"error message: could not update sent should be returned"
 				);
-				console.log(res.body);
 			});
 	});
 });
